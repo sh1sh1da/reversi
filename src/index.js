@@ -57,7 +57,7 @@ class Game extends React.Component {
         squares: Array.from(new Array(BOARD_HEIGHT), () => new Array(BOARD_WIDTH).fill(null))
       }],
       stepNumber: 0,
-      xIsNext: true,
+      blackIsNext: true,
     };
   }
 
@@ -74,20 +74,20 @@ class Game extends React.Component {
     if (squares[y][x]) {
       return;
     }
-    squares[y][x] = this.state.xIsNext ? 'X' : 'O';
+    squares[y][x] = this.state.blackIsNext ? '●' : '○';
     this.setState({
       history: history.concat([{
         squares: squares,
       }]),
       stepNumber: history.length,
-      xIsNext: !this.state.xIsNext,
+      blackIsNext: !this.state.blackIsNext,
     });
   }
 
   jumpTo(step) {
     this.setState({
       stepNumber: step,
-      xIsNext: (step % 2) === 0,
+      blackIsNext: (step % 2) === 0,
     })
   }
 
@@ -111,7 +111,7 @@ class Game extends React.Component {
     if (winner) {
       status = "Winner: " + winner;
     } else {
-      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      status = 'Next player: ' + (this.state.blackIsNext ? '●' : '○');
     }
 
     return (
