@@ -2,6 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+const BOARD_HEIGHT = 8;
+const BOARD_WIDTH = 8;
+
 function Square(props) {
   return (
     <button className="square" onClick={props.onClick}>
@@ -51,7 +54,7 @@ class Game extends React.Component {
     super();
     this.state = {
       history: [{
-        squares: Array.from(new Array(3), () => new Array(3).fill(null))
+        squares: Array.from(new Array(BOARD_HEIGHT), () => new Array(BOARD_WIDTH).fill(null))
       }],
       stepNumber: 0,
       xIsNext: true,
@@ -61,7 +64,7 @@ class Game extends React.Component {
   handleClick(x, y) {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
-    const squares = Array.from(new Array(3), () => new Array(3).fill(null));
+    const squares = Array.from(new Array(BOARD_HEIGHT), () => new Array(BOARD_WIDTH).fill(null));
     for (let y = 0; y < squares.length; y++) {
       for (let x = 0; x < squares[y].length; x++) {
         squares[y][x] = current.squares[y][x];
