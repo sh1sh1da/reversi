@@ -59,6 +59,10 @@ class Game extends React.Component {
       stepNumber: 0,
       blackIsNext: true,
     };
+    this.state.history[0].squares[3][3] = '○';
+    this.state.history[0].squares[3][4] = '●';
+    this.state.history[0].squares[4][3] = '●';
+    this.state.history[0].squares[4][4] = '○';
   }
 
   handleClick(x, y) {
