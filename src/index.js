@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import io from "socket.io-client";
 import './index.css';
 
 const BOARD_HEIGHT = 8;
@@ -65,6 +66,18 @@ class Game extends React.Component {
     this.state.history[0].squares[3][4] = BLACK_STONE;
     this.state.history[0].squares[4][3] = BLACK_STONE;
     this.state.history[0].squares[4][4] = WHITE_STONE;
+
+    this.socket = io('localhost:8080');
+
+    this.sendMessage = (state) => {
+      this.socket.emit('SEND_MESSAGE', {
+        state: state
+      });
+    }
+
+    this.socket.on('RECEIVE_MESSAGE', function (state) {
+      this.setState(state);
+    }.bind(this));
   }
 
   handleClick(x, y) {
@@ -88,13 +101,16 @@ class Game extends React.Component {
     }
 
     squares[y][x] = this.state.blackIsNext ? BLACK_STONE : WHITE_STONE;
-    this.setState({
+
+    const updatedState = {
       history: history.concat([{
         squares: squares,
       }]),
       stepNumber: history.length,
       blackIsNext: !this.state.blackIsNext,
-    });
+    };
+    this.setState(updatedState);
+    this.sendMessage(updatedState);
   }
 
   jumpTo(step) {
