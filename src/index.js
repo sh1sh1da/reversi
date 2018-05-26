@@ -76,7 +76,9 @@ class Game extends React.Component {
     }
 
     this.socket.on('RECEIVE_MESSAGE', function (state) {
-      this.setState(state);
+      if (state !== null) {
+        this.setState(state);
+      }
     }.bind(this));
   }
 
@@ -118,6 +120,25 @@ class Game extends React.Component {
       stepNumber: step,
       blackIsNext: (step % 2) === 0,
     })
+  }
+
+  reset() {
+    const squares = Array.from(new Array(BOARD_HEIGHT), () => new Array(BOARD_WIDTH).fill(null));
+    squares[3][3] = WHITE_STONE;
+    squares[3][4] = BLACK_STONE;
+    squares[4][3] = BLACK_STONE;
+    squares[4][4] = WHITE_STONE;
+
+    const initialState = {
+      history: [{
+        squares: squares
+      }],
+      stepNumber: 0,
+      blackIsNext: true,
+    };
+
+    this.setState(initialState);
+    this.sendMessage(initialState);
   }
 
   render() {
@@ -183,6 +204,9 @@ class Game extends React.Component {
             squares={current.squares}
             onClick={(x, y) => this.handleClick(x, y)} />
         </div>
+
+        <button onClick={() => this.reset()}>Reset</button>
+
         <div className="game-info">
           <div>{status}</div>
           <ol>{moves}</ol>
