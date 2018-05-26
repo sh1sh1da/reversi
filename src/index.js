@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import io from "socket.io-client";
 import './index.css';
 
 const BOARD_HEIGHT = 8;
@@ -65,6 +66,20 @@ class Game extends React.Component {
     this.state.history[0].squares[3][4] = BLACK_STONE;
     this.state.history[0].squares[4][3] = BLACK_STONE;
     this.state.history[0].squares[4][4] = WHITE_STONE;
+
+    this.socket = io('http://ec2-54-238-130-21.ap-northeast-1.compute.amazonaws.com:8080');
+
+    this.sendMessage = (state) => {
+      this.socket.emit('SEND_MESSAGE', {
+        state: state
+      });
+    }
+
+    this.socket.on('RECEIVE_MESSAGE', function (state) {
+      if (state !== null) {
+        this.setState(state);
+      }
+    }.bind(this));
   }
 
   handleClick(x, y) {
@@ -88,13 +103,16 @@ class Game extends React.Component {
     }
 
     squares[y][x] = this.state.blackIsNext ? BLACK_STONE : WHITE_STONE;
-    this.setState({
+
+    const updatedState = {
       history: history.concat([{
         squares: squares,
       }]),
       stepNumber: history.length,
       blackIsNext: !this.state.blackIsNext,
-    });
+    };
+    this.setState(updatedState);
+    this.sendMessage(updatedState);
   }
 
   jumpTo(step) {
@@ -102,6 +120,25 @@ class Game extends React.Component {
       stepNumber: step,
       blackIsNext: (step % 2) === 0,
     })
+  }
+
+  reset() {
+    const squares = Array.from(new Array(BOARD_HEIGHT), () => new Array(BOARD_WIDTH).fill(null));
+    squares[3][3] = WHITE_STONE;
+    squares[3][4] = BLACK_STONE;
+    squares[4][3] = BLACK_STONE;
+    squares[4][4] = WHITE_STONE;
+
+    const initialState = {
+      history: [{
+        squares: squares
+      }],
+      stepNumber: 0,
+      blackIsNext: true,
+    };
+
+    this.setState(initialState);
+    this.sendMessage(initialState);
   }
 
   render() {
@@ -167,6 +204,9 @@ class Game extends React.Component {
             squares={current.squares}
             onClick={(x, y) => this.handleClick(x, y)} />
         </div>
+
+        <button onClick={() => this.reset()}>Reset</button>
+
         <div className="game-info">
           <div>{status}</div>
           <ol>{moves}</ol>
