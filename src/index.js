@@ -16,6 +16,23 @@ function Square(props) {
   );
 }
 
+class LoginForm extends React.Component {
+  render() {
+    const style = {
+      marginBottom: '10px',
+    };
+
+    return (
+      <div style={style}>
+        <form>
+          <input type="text" />
+          <button onClick={this.props.onClick}>login</button>
+        </form>
+      </div>
+    );
+  }
+}
+
 class Board extends React.Component {
   renderSquare(x, y) {
     return (
@@ -55,6 +72,7 @@ class Board extends React.Component {
 class Game extends React.Component {
   constructor() {
     super();
+    this.loggedIn = false;
     this.state = {
       history: [{
         squares: Array.from(new Array(BOARD_HEIGHT), () => new Array(BOARD_WIDTH).fill(null))
@@ -84,6 +102,10 @@ class Game extends React.Component {
   }
 
   handleClick(x, y) {
+    if (!this.loggedIn) {
+      return;
+    }
+
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     if (current.squares[y][x]) {
@@ -99,7 +121,7 @@ class Game extends React.Component {
 
     const putStone = (this.state.blackIsNext ? BLACK_STONE : WHITE_STONE);
     const reversed = reverseStones(x, y, putStone, squares, false);
-    if (reversed == 0) {
+    if (reversed === 0) {
       return;
     }
 
@@ -140,6 +162,11 @@ class Game extends React.Component {
 
     this.setState(initialState);
     this.sendMessage(initialState);
+  }
+
+  login(e) {
+    e.preventDefault();
+    this.loggedIn = true;
   }
 
   render() {
@@ -200,6 +227,7 @@ class Game extends React.Component {
 
     return (
       <div className="game">
+        <LoginForm onClick={(e) => this.login(e)} />
         <div className="game-board">
           <Board
             squares={current.squares}
