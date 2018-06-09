@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import io from "socket.io-client";
+import LoggedInUserList from "./LoggedInUserList";
 import './index.css';
 
 const BOARD_HEIGHT = 8;
@@ -14,35 +15,6 @@ function Square(props) {
       {props.value}
     </button>
   );
-}
-
-class LoggedInUsersList extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { users: [] }
-    props.socket.on('LOGGED_IN_USERS', users => {
-      this.setState({ users: users });
-    });
-  }
-
-  render() {
-    const generateUserList = () => {
-      let userList = [];
-      for (const user of this.state.users) {
-        userList.push(user);
-      }
-      return userList.map(u => <li>{u}</li>);
-    };
-
-    return (
-      <div>
-        <strong>ログイン中のユーザー</strong>
-        <ul>
-          {generateUserList()}
-        </ul>
-      </div>
-    );
-  }
 }
 
 class LoginForm extends React.Component {
@@ -289,7 +261,7 @@ class Game extends React.Component {
 
         <button onClick={() => this.reset()}>Reset</button>
 
-        <LoggedInUsersList socket={this.socket} />
+        <LoggedInUserList socket={this.socket} />
 
         <div className="game-info">
           <div>{status}</div>
