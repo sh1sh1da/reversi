@@ -16,17 +16,56 @@ function Square(props) {
   );
 }
 
-class LoginForm extends React.Component {
+class LoggedInUsersList extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { users: [] }
+    props.socket.on('LOGGED_IN_USERS', users => {
+      this.setState({ users: users });
+    });
+  }
+
   render() {
-    const style = {
-      marginBottom: '10px',
+    const generateUserList = () => {
+      let userList = [];
+      for (const user of this.state.users) {
+        userList.push(user);
+      }
+      return userList.map(u => <li>{u}</li>);
     };
 
     return (
-      <div style={style}>
-        <form>
-          <input type="text" />
-          <button onClick={this.props.onClick}>login</button>
+      <div>
+        <strong>ログイン中のユーザー</strong>
+        <ul>
+          {generateUserList()}
+        </ul>
+      </div>
+    );
+  }
+}
+
+class LoginForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      value: ''
+    }
+  }
+
+  handleChange(e) {
+    this.setState({ value: e.target.value });
+  }
+
+  render() {
+    const divStyle = {
+      marginBottom: '10px',
+    };
+    return (
+      <div style={divStyle}>
+        <form onSubmit={e => { this.props.onClick(e, this.state.value) }}>
+          <input type="text" value={this.state.value} onChange={e => { this.handleChange(e) }} />
+          <input type="submit" value="login" />
         </form>
       </div>
     );
@@ -72,8 +111,8 @@ class Board extends React.Component {
 class Game extends React.Component {
   constructor() {
     super();
-    this.loggedIn = false;
     this.state = {
+      loggedIn: false,
       history: [{
         squares: Array.from(new Array(BOARD_HEIGHT), () => new Array(BOARD_WIDTH).fill(null))
       }],
@@ -85,8 +124,8 @@ class Game extends React.Component {
     this.state.history[0].squares[4][3] = BLACK_STONE;
     this.state.history[0].squares[4][4] = WHITE_STONE;
 
-    this.socket = io('http://ec2-54-238-130-21.ap-northeast-1.compute.amazonaws.com:8080');
-    // this.socket = io('localhost:8080');
+    //this.socket = io('http://ec2-54-238-130-21.ap-northeast-1.compute.amazonaws.com:8080');
+    this.socket = io('localhost:8080');
 
     this.sendMessage = (state) => {
       this.socket.emit('SEND_MESSAGE', {
@@ -102,7 +141,7 @@ class Game extends React.Component {
   }
 
   handleClick(x, y) {
-    if (!this.loggedIn) {
+    if (!this.state.loggedIn) {
       return;
     }
 
@@ -164,9 +203,18 @@ class Game extends React.Component {
     this.sendMessage(initialState);
   }
 
-  login(e) {
+  login(e, value) {
     e.preventDefault();
-    this.loggedIn = true;
+    if (value === '') return;
+    this.state.loggedIn = true;
+    this.setState(this.state);
+    this.socket.emit('LOGIN', { name: value }, (response) => {
+      if (response.errorMessage) {
+        this.state.loggedIn = false;
+        this.setState(this.state);
+        console.log(response);
+      }
+    });
   }
 
   render() {
@@ -225,9 +273,15 @@ class Game extends React.Component {
       status = 'Next player: ' + (this.state.blackIsNext ? BLACK_STONE : WHITE_STONE);
     }
 
+    const display = () => ({
+      display: this.state.loggedIn ? 'none' : 'block'
+    });
+
     return (
       <div className="game">
-        <LoginForm onClick={(e) => this.login(e)} />
+        <div style={display()} className="login-form">
+          <LoginForm onClick={(e, value) => this.login(e, value)} />
+        </div>
         <div className="game-board">
           <Board
             squares={current.squares}
@@ -235,6 +289,8 @@ class Game extends React.Component {
         </div>
 
         <button onClick={() => this.reset()}>Reset</button>
+
+        <LoggedInUsersList socket={this.socket} />
 
         <div className="game-info">
           <div>{status}</div>
