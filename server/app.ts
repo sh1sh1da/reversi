@@ -10,7 +10,7 @@ const server: Server = app.listen(8080, function () {
 const io = socket(server);
 let gameState = null;
 
-let loggedInUsers = [];
+let loggedInUsers: string[] = [];
 
 io.on('connection', (socket) => {
   io.emit('RECEIVE_MESSAGE', gameState);
