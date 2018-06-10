@@ -26,7 +26,7 @@ class Game extends React.Component {
     this.state.history[0].squares[4][3] = BLACK_STONE;
     this.state.history[0].squares[4][4] = WHITE_STONE;
 
-    this.socket = io('localhost:8080');
+    this.socket = io('http://ec2-54-238-130-21.ap-northeast-1.compute.amazonaws.com:8080');
 
     this.sendMessage = (state) => {
       this.socket.emit('SEND_MESSAGE', {
